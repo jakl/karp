@@ -4,8 +4,7 @@
   "description": "multiplayer fishy game clone",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "node test.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.15.2",
