@@ -100,6 +100,7 @@ reset = function() {
   fishes = []
   Object.keys(players).forEach(reset_player)
   game_over = false
+  ai_quantity = 5
 }
 reset()
 
