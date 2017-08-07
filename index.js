@@ -52,7 +52,7 @@ io.on('connection', function(socket){
   });
   
   socket.on('reset', function(){
-    reset()
+    //reset()  // Any player can reset the game? Nope
   });
 });
 
