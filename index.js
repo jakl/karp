@@ -129,6 +129,8 @@ const move_fish = fish => {
   fish.x += fish.dx
   fish.y += fish.dy
 
+  if(fish.id) fish.name = names[fish.id]
+
   const fish_alive = Date.now() - fish.created_at;
   if(fish.type === 'gold' && fish_alive > 5000) {
     let original_fish = fish;
@@ -145,17 +147,17 @@ const move_fish = fish => {
 
 
   /* === if the fish goes off an edge, wrap it around === */
-  if (fish.x > 100) {
+  if (fish.x > 200) {
     fish.x = 0
   }
   if (fish.x < 0) {
-    fish.x = 100
+    fish.x = 200
   }
-  if (fish.y > 100) {
+  if (fish.y > 150) {
     fish.y = 0
   }
   if (fish.y < 0) {
-    fish.y = 100
+    fish.y = 150
   }
 
 }
@@ -244,7 +246,6 @@ const random_ai_fish = () => {
 //================================
 // Generate a randomized player fish javascript object
 //================================
-
 const random_player_fish = id => {
   return {
     id: id,
