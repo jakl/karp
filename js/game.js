@@ -146,7 +146,12 @@ paint_fish = function(){
 
     sheet.beginPath()
     sheet.fillStyle = '#7f8c8d'
-    sheet.fillText(fish.id ? fish.name.substr(0,10) : 'AI', fish.sx - 25, fish.sy + fish.sr + 10)
+    if(fish.id === socket.id) {
+      sheet.fillStyle = 'red'
+      sheet.fontStyle = '14px'
+    }
+
+    sheet.fillText(fish.name, fish.sx - 25, fish.sy + fish.sr + 10)
 
     sheet.beginPath()
     sheet.arc(fish.sx, fish.sy, fish.sr, 0, 2 * Math.PI, false)

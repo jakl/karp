@@ -32,7 +32,7 @@ app.get('/', function(req, res){
 });
 
 io.on('connection', function(socket){
-  names[socket.id] = socket.id;
+  names[socket.id] = 'unnamed'
 
   console.log(`user ${socket.id} connected`);
   players[socket.id] = random_player_fish(socket.id)
@@ -130,6 +130,11 @@ const move_fish = fish => {
   fish.y += fish.dy
 
   if(fish.id) fish.name = names[fish.id]
+
+  if(!fish.name) {
+    const names = ['glub...', '*splash*', '???']
+    fish.name = names[Math.floor(Math.random() * names.length)];
+  }
 
   const fish_alive = Date.now() - fish.created_at;
   if(fish.type === 'gold' && fish_alive > 5000) {
