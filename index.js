@@ -118,6 +118,20 @@ const move_fish = fish => {
   fish.x += fish.dx
   fish.y += fish.dy
 
+  const fish_alive = Date.now() - fish.created_at;
+  if(fish.type === 'gold' && fish_alive > 5000) {
+    let original_fish = fish;
+    fish = random_ai_fish()
+
+    fish.r = original_fish.r
+    fish.x = original_fish.x
+    fish.y = original_fish.y
+  }
+
+  if(fish.type === 'negative' && fish_alive > 5000) {
+    fish = random_ai_fish();
+  }
+
 
   /* === if the fish goes off an edge, wrap it around === */
   if (fish.x > 100) {
@@ -179,16 +193,26 @@ setInterval(() => { ai_quantity++ }, 10000)
 // Generate a randomized fish javascript object
 //================================
 const random_ai_fish = () => {
-  const negChance = 7;
+  const negChance = 9;
+  const goldChance = 75;
 
   let type = 'positive'
   let color = 'blue';
 
   // decide which type this fish is
-  let fishChance = Math.floor(Math.random() * (negChance - 0));
-  if(fishChance === negChance-1) {
+  let negFishChance  = Math.floor(Math.random() * (negChance - 0));
+  let goldFishChance = Math.floor(Math.random() * (goldChance - 0));
+
+  // make a neg?
+  if(negFishChance === negChance-1) {
     type  = 'negative'
     color = 'green'
+  }
+
+  // game winner.
+  if(goldFishChance === goldChance - 1) {
+    type  = 'gold'
+    color = 'gold'
   }
 
   return {
@@ -198,9 +222,10 @@ const random_ai_fish = () => {
     dx: Math.random() * 1 - .5,
     dy: Math.random() * 1 - .5,
 
-    r: Math.random() * 5,
+    r: Math.random() * 5 + 1,
 
     type: type,
+    created_at: Date.now(),
 
     color: color,
   }
@@ -269,15 +294,21 @@ const bump_fish = () => {
         const negative_fish = find_fish('negative', fish, another_fish)
         const player_fish   = find_fish('player', fish, another_fish)
         const positive_fish = find_fish('positive', fish, another_fish)
+        const gold_fish     = find_fish('gold', fish, another_fish)
 
-        if(player_fish && negative_fish) {
-          console.log('debug', 'player fish ate a bad fish :(')
-          console.log('debug', 'player', player_fish)
-          console.log('debug', 'negative_fish', negative_fish)
+        // negative fish
+        if((player_fish || positive_fish) && negative_fish) {
+          const subject_fish = player_fish !== undefined ? player_fish : positive_fish
 
-          player_fish.r = player_fish.r / 2
+          subject_fish.r = subject_fish.r / 1.4
           fishes.splice(negative_fish.index, 1, random_ai_fish())
 
+          return;
+        }
+
+        // gold fish
+        if(player_fish && gold_fish) {
+          player_fish.r = 100
           return;
         }
 
