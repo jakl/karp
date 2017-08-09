@@ -1,0 +1,21 @@
+.container {
+  width: 100%;
+  max-width: 500px;
+  height: 100%
+
+  margin: 0 auto;
+
+  text-align: center;
+}
+
+.container h1 {
+  margin-bottom: 30px;
+}
+
+.container p {
+  margin-bottom: 15px;
+}
+
+.container input, .container button {
+  width: 100%;
+}

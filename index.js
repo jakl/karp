@@ -21,6 +21,8 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 
+const names = {}
+
 app.set('port', (process.env.PORT || 5000));
 
 app.use(express.static(__dirname + '/'));
@@ -30,6 +32,8 @@ app.get('/', function(req, res){
 });
 
 io.on('connection', function(socket){
+  names[socket.id] = socket.id;
+
   console.log(`user ${socket.id} connected`);
   players[socket.id] = random_player_fish(socket.id)
   keyboards[socket.id] = empty_keyboard()
@@ -40,6 +44,11 @@ io.on('connection', function(socket){
 
     console.log(`user ${socket.id} disconnected`);
   });
+
+  socket.on('name', name => {
+    console.log(`user ${socket.id} is now know as: '${name}'`)
+    names[socket.id] = name;
+  })
 
   socket.on('keyboard', function(client_keyboard){
     keyboards[socket.id] = client_keyboard
@@ -67,6 +76,8 @@ http.listen(app.get('port'), function(){
 const config = require("./config.json")
 
 let game_over   = false // If this is set to true, the game over screen is displayed
+let winner      = null;
+
 let ai_quantity = config.start_with
 let fishes = []
 const players = {}
@@ -340,6 +351,12 @@ const eat_fish = (small_fish_index, big_fish_index) => {
   }
 
   if (big_fish.r > 100) {
+    if(big_fish.id) {
+      winner = names[big_fish.id];
+    } else {
+      winner = 'AI'
+    }
+    
     game_over = true
   }
 }
@@ -349,7 +366,10 @@ const eat_fish = (small_fish_index, big_fish_index) => {
 //================================
 const update_clients = () => {
   io.emit('fishes', all_fishes().concat(Object.values(players)))
-  io.emit('game_over', game_over)
+  io.emit('game_over', {
+    game_over: game_over,
+    winner: winner
+  })
 }
 
 //================================
