@@ -60,21 +60,65 @@ window.onkeydown = function(key) {
   if (key.keyCode == 37) {keyboard.left=true}
   if (key.keyCode == 38) {keyboard.up=true}
   if (key.keyCode == 40) {keyboard.down=true}
-  if (key.keyCode == 65) {keyboard.a=true} // 65 is the ASCII value for the letter 'a'
-  if (key.keyCode == 83) {keyboard.s=true}
-  if (key.keyCode == 68) {keyboard.d=true}
-  if (key.keyCode == 87) {keyboard.w=true}
 }
+
+function handleOrientation(event) {
+  if(!event.beta || !event.gamma) return;
+  var x = Math.floor(event.beta);  // In degree in the range [-180,180]
+  var y = Math.floor(event.gamma); // In degree in the range [-90,90]
+
+  // Because we don't want to have the device upside down
+  // We constrain the x value to the range [-90,90]
+  if (x >  90) { x =  90};
+  if (x < -90) { x = -90};
+
+  // To make computation easier we shift the range of
+  // x and y to [0,180]
+  x += 90;
+  y += 90;
+
+  keyboard.right = false;
+  keyboard.left  = false;
+  keyboard.up    = false;
+  keyboard.down  = false;
+
+  // 10 is half the size of the ball
+  // It center the positioning point to the center of the ball
+  if(y > 100) {
+    keyboard.right   = true;
+    keyboard.left    = false;
+  }
+
+  if(y < 90) {
+    keyboard.right   = false;
+    keyboard.left    = true;
+  }
+
+  if(x < 130) {
+    keyboard.up      = true;
+    keyboard.down    = false;
+  }
+
+  if(x > 110) {
+    keyboard.down    = true;
+    keyboard.up      = false;
+  }
+
+  if(x > 111 && x < 129) {
+    keyboard.down = false;
+    keyboard.up  = false;
+  }
+
+  $('#debug').text('x: '+x+', y: '+y)
+}
+
+window.addEventListener('deviceorientation', handleOrientation);
 
 window.onkeyup = function (key) {
   if (key.keyCode == 39) {keyboard.right=false}
   if (key.keyCode == 37) {keyboard.left=false}
   if (key.keyCode == 38) {keyboard.up=false}
   if (key.keyCode == 40) {keyboard.down=false}
-  if (key.keyCode == 65) {keyboard.a=false}
-  if (key.keyCode == 83) {keyboard.s=false}
-  if (key.keyCode == 68) {keyboard.d=false}
-  if (key.keyCode == 87) {keyboard.w=false}
 }
 
 //================================
