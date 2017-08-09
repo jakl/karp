@@ -372,7 +372,7 @@ const update_clients = () => {
 
   setTimeout(() => {
     if(game_over) reset();
-  }, 5000)
+  }, 50000)
 }
 
 //================================
@@ -395,6 +395,7 @@ const heartbeat = () => {
 // This starts the infinite looping heartbeat of the game logic, every 60 milliseconds
 //================================
 setInterval(heartbeat, 60)
+
 
 /* This debug function can display game information in the console */
 const debug = () => {
