@@ -190,11 +190,10 @@ const move_with_keyboard = id => {
 //================================
 
 const add_ai_fish = () => {
+  if(fishes.length > 20) return; // max
 
   if (fishes.length < ai_quantity){
-
     fishes.push(random_ai_fish())
-
   }
 }
 // Every 10s add an AI fish
@@ -204,8 +203,8 @@ setInterval(() => { ai_quantity++ }, 10000)
 // Generate a randomized fish javascript object
 //================================
 const random_ai_fish = () => {
-  const negChance = 9;
-  const goldChance = 75;
+  const negChance = 15;
+  const goldChance = 125;
 
   let type = 'positive'
   let color = 'blue';
@@ -356,7 +355,7 @@ const eat_fish = (small_fish_index, big_fish_index) => {
     } else {
       winner = 'AI'
     }
-    
+
     game_over = true
   }
 }

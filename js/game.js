@@ -20,6 +20,9 @@ fish_pic.src = 'assets/karp.png'
 fish_pic_100 = new Image()
 fish_pic_100.src = 'assets/karpx100.png'
 
+fish_pic_big = new Image()
+fish_pic_big.src = 'assets/bigkarp.png'
+
 
 // === variables for tracking objects and state of the game ===
 
@@ -147,7 +150,8 @@ paint_fish = function(){
     sheet.fill()
 
     var fishImage = fish_pic
-    if(fish.r < 12) fishImage = fish_pic_100;
+    if(fish.r < 10) fishImage = fish_pic_100;
+    if(fish.r > 16) fishImage = fish_pic_big;
 
     console.log(fish.r)
 
