@@ -10,11 +10,15 @@ var socket = io();
 
 // === variables for drawing the game on the screen ===
 canvas = document.getElementById("pong_canvas") // This is the <canvas> in the HTML
-canvas.width = 600 // The game is this many pixels wide
+canvas.width = 700 // The game is this many pixels wide
 canvas.height = 600 // The game is this many pixels tall
 sheet = canvas.getContext("2d") // This is a leaf of the canvas for 2d drawings (usually called ctx in documentation online)
+
 fish_pic = new Image()
-fish_pic.src = 'karp.png'
+fish_pic.src = 'assets/karp.png'
+
+fish_pic_100 = new Image()
+fish_pic_100.src = 'assets/karpx100.png'
 
 
 // === variables for tracking objects and state of the game ===
@@ -108,8 +112,6 @@ function handleOrientation(event) {
     keyboard.down = false;
     keyboard.up  = false;
   }
-
-  $('#debug').text('x: '+x+', y: '+y)
 }
 
 window.addEventListener('deviceorientation', handleOrientation);
@@ -144,7 +146,12 @@ paint_fish = function(){
     sheet.fillStyle = fish.color
     sheet.fill()
 
-    sheet.drawImage(fish_pic, fish.sx - fish.sr, fish.sy - fish.sr, fish.sr * 2, fish.sr * 2)
+    var fishImage = fish_pic
+    if(fish.r < 12) fishImage = fish_pic_100;
+
+    console.log(fish.r)
+
+    sheet.drawImage(fishImage, fish.sx - fish.sr, fish.sy - fish.sr, fish.sr * 2, fish.sr * 2)
   })
 }
 
