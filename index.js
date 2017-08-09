@@ -369,6 +369,10 @@ const update_clients = () => {
     game_over: game_over,
     winner: winner
   })
+
+  setTimeout(() => {
+    if(game_over) reset();
+  }, 5000)
 }
 
 //================================
