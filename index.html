@@ -36,7 +36,8 @@
       $('.container').hide()
       $('#pong_canvas').show()
       $.getScript('js/game.js');
-      screen.lockOrientation('landscape')
+      if (screen.lockOrientation) screen.lockOrientation('landscape')
+      if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape')
     }
   </script>
 </body>
