@@ -10,8 +10,8 @@ var socket = io();
 
 // === variables for drawing the game on the screen ===
 canvas = document.getElementById("pong_canvas") // This is the <canvas> in the HTML
-canvas.width = $(window).width() // The game is this many pixels wide
-canvas.height = $(window).height() // The game is this many pixels tall
+canvas.width = 700 // The game is this many pixels wide
+canvas.height = 600 // The game is this many pixels tall
 sheet = canvas.getContext("2d") // This is a leaf of the canvas for 2d drawings (usually called ctx in documentation online)
 
 fish_pic = new Image()
@@ -155,14 +155,13 @@ paint_fish = function(){
 
     sheet.beginPath()
     sheet.arc(fish.sx, fish.sy, fish.sr, 0, 2 * Math.PI, false)
+    if(fish.id != socket.id && fish.type === 'player') fish.color = 'black'
     sheet.fillStyle = fish.color
     sheet.fill()
 
     var fishImage = fish_pic
     if(fish.r < 10) fishImage = fish_pic_100;
     if(fish.r > 16) fishImage = fish_pic_big;
-
-    console.log(fish.r)
 
     sheet.drawImage(fishImage, fish.sx - fish.sr, fish.sy - fish.sr, fish.sr * 2, fish.sr * 2)
 
