@@ -152,17 +152,17 @@ const move_fish = fish => {
 
 
   /* === if the fish goes off an edge, wrap it around === */
-  if (fish.x > 200) {
+  if (fish.x > 100) {
     fish.x = 0
   }
   if (fish.x < 0) {
-    fish.x = 200
+    fish.x = 100
   }
-  if (fish.y > 150) {
+  if (fish.y > 100) {
     fish.y = 0
   }
   if (fish.y < 0) {
-    fish.y = 150
+    fish.y = 100
   }
 
 }
