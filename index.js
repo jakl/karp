@@ -1,32 +1,25 @@
+/**
+ * Karp Server.
+ *
+ * @author James Koval & Friends <https://github.com/jakl/karp>
+ * @license MIT?
+ * @version 2
+ *
+ * :shipit:
+ */
+
+"use strict";
+
 // Pollyfil object.values because heroku is running old node.js
-var reduce = Function.bind.call(Function.call, Array.prototype.reduce);
-var isEnumerable = Function.bind.call(Function.call, Object.prototype.propertyIsEnumerable);
-var concat = Function.bind.call(Function.call, Array.prototype.concat);
-var keys = Reflect.ownKeys;
+const reduce = Function.bind.call(Function.call, Array.prototype.reduce);
+const isEnumerable = Function.bind.call(Function.call, Object.prototype.propertyIsEnumerable);
+const concat = Function.bind.call(Function.call, Array.prototype.concat);
+const keys = Reflect.ownKeys;
 
-if (!Object.values) {
-	Object.values = function values(O) {
-		return reduce(keys(O), (v, k) => concat(v, typeof k === 'string' && isEnumerable(O, k) ? [O[k]] : []), []);
-	};
-}
-
-// Pollyfill object.keys just in case
-if (!Object.keys) Object.keys = function(o) {
-  if (o !== Object(o))
-    throw new TypeError('Object.keys called on a non-object');
-  var k=[],p;
-  for (p in o) if (Object.prototype.hasOwnProperty.call(o,p)) k.push(p);
-  return k;
-}
-
-
-
-
-
-var express = require('express')
-var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+const express = require('express')
+const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 
 app.set('port', (process.env.PORT || 5000));
 
@@ -44,15 +37,16 @@ io.on('connection', function(socket){
   socket.on('disconnect', function(){
     delete players[socket.id]
     delete keyboards[socket.id]
+
     console.log(`user ${socket.id} disconnected`);
   });
-  
+
   socket.on('keyboard', function(client_keyboard){
     keyboards[socket.id] = client_keyboard
   });
-  
+
   socket.on('reset', function(){
-    reset() 
+    reset()
   });
 });
 
@@ -64,31 +58,38 @@ http.listen(app.get('port'), function(){
 
 
 //================================
-// Declare all game variables (imaginary buckets that hold game information/values)
+// Declare all game constiables (imaginary buckets that hold game information/values)
 // Note:
 // [] means an array (an auto-numbered list of values, index starts at 0)
 // {} means an object (a named list of values, also known as a hash or map)
 //================================
 
-game_over = false // If this is set to true, the game over screen is displayed
+const config = require("./config.json")
 
-fishes = []
-players = {}
-all_fishes = function() { return fishes.concat(Object.values(players)) }
+let game_over   = false // If this is set to true, the game over screen is displayed
+let ai_quantity = config.start_with
+let fishes = []
+const players = {}
 
-// Start out with 5 AI fish and grow this slowly over time
-ai_quantity = 5
+/**
+ * Return all the fishes on the server?
+ * @return {Array} Array of fishes.
+ */
+const all_fishes = () => {
+	return fishes.concat(Object.values(players))
+}
 
+// === constiables for the keyboard keys that we track for player movement ===
+const keyboards = {}
 
-
-// === variables for the keyboard keys that we track for player movement ===
-
-keyboards = {}
-
-
-
-reset_player = function(id) {
+/**
+ * Reset the player to a new location.
+ * @param   {String} id Player id.
+ * @returns {Object}    Player Object.
+ */
+const reset_player = id => {
   players[id] = random_player_fish(id)
+	return players[id]
 }
 
 
@@ -96,11 +97,11 @@ reset_player = function(id) {
 // Reset all the fish back to start
 //================================
 
-reset = function() {
+const reset = () => {
   fishes = []
   Object.keys(players).forEach(reset_player)
   game_over = false
-  ai_quantity = 5
+  ai_quantity = config.start_with
 }
 reset()
 
@@ -112,8 +113,7 @@ reset()
 // Code for moving each fish individually
 //================================
 
-move_fish = function(fish) {
-
+const move_fish = fish => {
   // === move the fish position by an amount that is its speed ===
   fish.x += fish.dx
   fish.y += fish.dy
@@ -135,14 +135,11 @@ move_fish = function(fish) {
 
 }
 
-
-
-
 //================================
 // Set the speeds for fishes controlled by players, based on keys pressed
 //================================
 
-move_with_keyboard = function(id) {
+const move_with_keyboard = id => {
   if (!keyboards[id] || !players[id]) { return }
 
   // === keyboard controls for players ===
@@ -163,14 +160,11 @@ move_with_keyboard = function(id) {
   }
 }
 
-
-
-
 //================================
 // Code to add AI fish to the pond if there are too few
 //================================
 
-add_ai_fish = function() {
+const add_ai_fish = () => {
 
   if (fishes.length < ai_quantity){
 
@@ -179,16 +173,24 @@ add_ai_fish = function() {
   }
 }
 // Every 10s add an AI fish
-setInterval(function() { ai_quantity++ }, 10000)
-
-
-
+setInterval(() => { ai_quantity++ }, 10000)
 
 //================================
 // Generate a randomized fish javascript object
 //================================
+const random_ai_fish = () => {
+  const negChance = 7;
 
-random_ai_fish = function(){
+  let type = 'positive'
+  let color = 'blue';
+
+  // decide which type this fish is
+  let fishChance = Math.floor(Math.random() * (negChance - 0));
+  if(fishChance === negChance-1) {
+    type  = 'negative'
+    color = 'green'
+  }
+
   return {
     x: Math.random() * 100,
     y: Math.random() * 100,
@@ -198,7 +200,9 @@ random_ai_fish = function(){
 
     r: Math.random() * 5,
 
-    color: '#0000FF',
+    type: type,
+
+    color: color,
   }
 }
 
@@ -206,20 +210,21 @@ random_ai_fish = function(){
 // Generate a randomized player fish javascript object
 //================================
 
-random_player_fish = function(id){
+const random_player_fish = id => {
   return {
     id: id,
     x: Math.random() * 100,
     y: Math.random() * 100,
     dx: 0,
     dy: 0,
+    type: 'player',
     r: 3,
     color: "#FF0000",
   }
 }
 
 
-empty_keyboard = function(){
+const empty_keyboard = () => {
   return {
     up: false,
     down: false,
@@ -228,25 +233,53 @@ empty_keyboard = function(){
   }
 }
 
-
-
 //================================
 // Code to check if any fish bumps into any other fish
 //================================
-
-bump_fish = function() {
+const bump_fish = () => {
   all_fishes().forEach(function(fish, fish_index){
     all_fishes().forEach(function(another_fish, another_fish_index){
       if (another_fish_index == fish_index) { // don't check the same fish against itself
         return
       }
 
-
       // Distance formula: √[(x1-x2)²+(y1-y2)²]
-      distance = Math.sqrt(  Math.pow(fish.x - another_fish.x, 2) + Math.pow(fish.y - another_fish.y, 2)  )
+      const distance = Math.sqrt(  Math.pow(fish.x - another_fish.x, 2) + Math.pow(fish.y - another_fish.y, 2)  )
 
       // if the fish are closer than their radiuses, then they are touching
       if (distance < fish.r + another_fish.r) {
+
+        // avoid any issues.
+        fish.index         = fish_index;
+        another_fish.index = another_fish_index
+
+        /**
+         * Find a fish by type.
+         *
+         * @param  {String} type     Type name.
+         * @param  {Object:Fish} one_fish Fish to check.
+         * @param  {Object:Fish} two_fish Fish to check.
+         * @return {Object}          Matching fish or undefined.
+         */
+        const find_fish = (type, one_fish, two_fish) => {
+          return (one_fish.type === type) ? one_fish :
+                 (two_fish.type === type) ? two_fish : undefined
+        }
+
+        const negative_fish = find_fish('negative', fish, another_fish)
+        const player_fish   = find_fish('player', fish, another_fish)
+        const positive_fish = find_fish('positive', fish, another_fish)
+
+        if(player_fish && negative_fish) {
+          console.log('debug', 'player fish ate a bad fish :(')
+          console.log('debug', 'player', player_fish)
+          console.log('debug', 'negative_fish', negative_fish)
+
+          player_fish.r = player_fish.r / 2
+          fishes.splice(negative_fish.index, 1, random_ai_fish())
+
+          return;
+        }
 
         // check which fish is bigger - the bigger one eats the little one
         if (fish.r > another_fish.r) {
@@ -259,20 +292,14 @@ bump_fish = function() {
   })
 }
 
-
-
-
-
-
-
 //================================
 // Code for when fish touch, the smaller fish is eaten, the bigger fish grows larger
 //================================
+const eat_fish = (small_fish_index, big_fish_index) => {
+  const big_fish = all_fishes()[big_fish_index]
+  const small_fish = all_fishes()[small_fish_index]
 
-eat_fish = function(small_fish_index, big_fish_index){
-  big_fish = all_fishes()[big_fish_index]
-  small_fish = all_fishes()[small_fish_index]
-
+  // expand big fish to be BIGGER.
   big_fish.r += small_fish.r / big_fish.r
 
   if (small_fish.id) { // This is a player
@@ -286,30 +313,23 @@ eat_fish = function(small_fish_index, big_fish_index){
   }
 }
 
-
-
-
-
-
-
 //================================
 // Code that will periodically send game information out to any browsers connected
 //================================
-
-update_clients = function() {
+const update_clients = () => {
   io.emit('fishes', all_fishes().concat(Object.values(players)))
   io.emit('game_over', game_over)
 }
 
-
-
-
-
 //================================
 // This is the code that runs over and over again to keep the game moving
 //================================
+const heartbeat = () => {
+  if(game_over) {
+    io.emit('fishes', [])
+    return;
+  }
 
-heartbeat = function() {
   Object.keys(players).forEach(move_with_keyboard)
   all_fishes().forEach(move_fish)
   add_ai_fish()
@@ -317,19 +337,14 @@ heartbeat = function() {
   update_clients()
 };
 
-
-
-
 //================================
 // This starts the infinite looping heartbeat of the game logic, every 60 milliseconds
 //================================
 setInterval(heartbeat, 60)
 
-
-
 /* This debug function can display game information in the console */
-debug = function() {
+const debug = () => {
   console.log(fishes, players, keyboards)
 }
 
-//window.setInterval(debug, 2000)/* Uncomment this line of code to see debug info */
+if(process.env.DEBUG) setInterval(debug, 2000)/* Uncomment this line of code to see debug info */

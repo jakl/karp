@@ -31,16 +31,13 @@
   //   $('#messages').append($('<li>').text(msg));
   // });
 
-
-
   // === variables for drawing the game on the screen ===
-
   canvas = document.getElementById("pong_canvas") // This is the <canvas> in the HTML
   canvas.width = 600 // The game is this many pixels wide
   canvas.height = 600 // The game is this many pixels tall
   sheet = canvas.getContext("2d") // This is a leaf of the canvas for 2d drawings (usually called ctx in documentation online)
   fish_pic = new Image()
-  fish_pic.src = 'https://vignette2.wikia.nocookie.net/pokemontowerdefensethree/images/0/01/Magikarp.png'
+  fish_pic.src = 'karp.png'
 
 
   // === variables for tracking objects and state of the game ===
@@ -98,14 +95,9 @@
     if (key.keyCode == 87) {keyboard.w=false}
   }
 
-
-
-
-
   //================================
   // Code for when the mouse is clicked to restart the game
   //================================
-
   canvas.onmousedown = function() {
     socket.emit('reset')
   }
@@ -114,7 +106,6 @@
   //================================
   // Code for drawing each fish
   //================================
-
   paint_fish = function(){
     fishes.forEach(function(fish){
       fish.sx = fish.x/100 * canvas.width
@@ -130,12 +121,9 @@
     })
   }
 
-
-
   //================================
   // Code for drawing the game
   //================================
-
   paint = function() {
     // Draw the background of the game as a solid black rectangle the size of the canvas
     sheet.fillStyle = '#000066'
@@ -169,16 +157,10 @@
     socket.emit('keyboard', keyboard)
   };
 
-
-
-
   //================================
   // This starts the infinite looping heartbeat of the game logic, every 60 milliseconds
   //================================
   window.setInterval(heartbeat, 60)
-
-
-
 
   /* This debug function can display game information in the console */
   debug = function() {
@@ -186,7 +168,6 @@
   }
 
   window.setInterval(debug, 2000)/* Uncomment this line of code to see debug info */
-
   </script>
 </body>
 </html>
