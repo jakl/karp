@@ -38,6 +38,8 @@ io.on('connection', function(socket){
   players[socket.id] = random_player_fish(socket.id)
   keyboards[socket.id] = empty_keyboard()
 
+  socket.emit('config', config)
+
   socket.on('disconnect', function(){
     delete players[socket.id]
     delete keyboards[socket.id]
@@ -55,6 +57,7 @@ io.on('connection', function(socket){
   });
 
   socket.on('reset', function(){
+    if(!game_over) return; // only allow on game over.
     reset()
   });
 });
@@ -76,7 +79,8 @@ http.listen(app.get('port'), function(){
 const config = require("./config.json")
 
 let game_over   = false // If this is set to true, the game over screen is displayed
-let winner      = null;
+let game_over_auto_reset = null
+let winner      = null
 
 let ai_quantity = config.start_with
 let fishes = []
@@ -113,6 +117,14 @@ const reset = () => {
   Object.keys(players).forEach(reset_player)
   game_over = false
   ai_quantity = config.start_with
+
+  clearTimeout(game_over_auto_reset)
+  game_over_auto_reset = null
+
+  io.emit('game_over', {
+    game_over: false,
+    winner: false
+  })
 }
 reset()
 
@@ -137,7 +149,7 @@ const move_fish = fish => {
   }
 
   const fish_alive = Date.now() - fish.created_at;
-  if(fish.type === 'gold' && fish_alive > 5000) {
+  if(fish.type === 'gold' && fish_alive > config.special_fish_timeout) {
     let original_fish = fish;
     fish = random_ai_fish()
 
@@ -146,23 +158,23 @@ const move_fish = fish => {
     fish.y = original_fish.y
   }
 
-  if(fish.type === 'negative' && fish_alive > 5000) {
+  if(fish.type === 'negative' && fish_alive > config.special_fish_timeout) {
     fish = random_ai_fish();
   }
 
 
   /* === if the fish goes off an edge, wrap it around === */
-  if (fish.x > 100) {
+  if (fish.x > config.x_scale) {
     fish.x = 0
   }
   if (fish.x < 0) {
-    fish.x = 100
+    fish.x = config.x_scale
   }
-  if (fish.y > 100) {
+  if (fish.y > config.y_scale) {
     fish.y = 0
   }
   if (fish.y < 0) {
-    fish.y = 100
+    fish.y = config.y_scale
   }
 
 }
@@ -176,17 +188,17 @@ const move_with_keyboard = id => {
 
   // === keyboard controls for players ===
   if (keyboards[id].left) {
-    players[id].dx = -1
+    players[id].dx = -config.player_speed
   } else if (keyboards[id].right) {
-    players[id].dx = 1
+    players[id].dx = config.player_speed
   } else {
     players[id].dx = 0
   }
 
   if (keyboards[id].up) {
-    players[id].dy = -1
+    players[id].dy = -config.player_speed
   } else if (keyboards[id].down) {
-    players[id].dy = 1
+    players[id].dy = config.player_speed
   } else {
     players[id].dy = 0
   }
@@ -197,49 +209,46 @@ const move_with_keyboard = id => {
 //================================
 
 const add_ai_fish = () => {
-  if(fishes.length > 20) return; // max
+  if(fishes.length > config.max_ai_fish) return; // max
 
   if (fishes.length < ai_quantity){
     fishes.push(random_ai_fish())
   }
 }
 // Every 10s add an AI fish
-setInterval(() => { ai_quantity++ }, 10000)
+setInterval(() => { ai_quantity++ }, config.ai_reproduction_rate)
 
 //================================
 // Generate a randomized fish javascript object
 //================================
 const random_ai_fish = () => {
-  const negChance = 15;
-  const goldChance = 125;
-
   let type = 'positive'
   let color = 'blue';
 
   // decide which type this fish is
-  let negFishChance  = Math.floor(Math.random() * (negChance - 0));
-  let goldFishChance = Math.floor(Math.random() * (goldChance - 0));
+  let negFishChance  = Math.floor(Math.random() * (config.negChance - 0));
+  let goldFishChance = Math.floor(Math.random() * (config.goldChance - 0));
 
   // make a neg?
-  if(negFishChance === negChance-1) {
+  if(negFishChance === config.negChance-1) {
     type  = 'negative'
     color = 'green'
   }
 
   // game winner.
-  if(goldFishChance === goldChance - 1) {
+  if(goldFishChance === config.goldChance - 1) {
     type  = 'gold'
     color = 'gold'
   }
 
   return {
-    x: Math.random() * 100,
-    y: Math.random() * 100,
+    x: Math.random() * config.x_scale,
+    y: Math.random() * config.y_scale,
 
-    dx: Math.random() * 1 - .5,
-    dy: Math.random() * 1 - .5,
+    dx: Math.random() * config.ai_speed * 2 - config.ai_speed,
+    dy: Math.random() * config.ai_speed * 2 - config.ai_speed,
 
-    r: Math.random() * 5 + 1,
+    r: Math.random() * config.max_ai_size + 1,
 
     type: type,
     created_at: Date.now(),
@@ -254,12 +263,12 @@ const random_ai_fish = () => {
 const random_player_fish = id => {
   return {
     id: id,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
+    x: Math.random() * config.x_scale,
+    y: Math.random() * config.y_scale,
     dx: 0,
     dy: 0,
     type: 'player',
-    r: 3,
+    r: config.player_start_size,
     color: "#FF0000",
   }
 }
@@ -316,7 +325,7 @@ const bump_fish = () => {
         if((player_fish || positive_fish) && negative_fish) {
           const subject_fish = player_fish !== undefined ? player_fish : positive_fish
 
-          subject_fish.r = subject_fish.r / 1.4
+          subject_fish.r = subject_fish.r / config.neg_reduction
           fishes.splice(negative_fish.index, 1, random_ai_fish())
 
           return;
@@ -324,7 +333,7 @@ const bump_fish = () => {
 
         // gold fish
         if(player_fish && gold_fish) {
-          player_fish.r = 100
+          player_fish.r = config.x_scale
           return;
         }
 
@@ -355,15 +364,29 @@ const eat_fish = (small_fish_index, big_fish_index) => {
     fishes.splice(small_fish_index, 1, random_ai_fish())
   }
 
-  if (big_fish.r > 100) {
+  if (big_fish.r > config.x_scale) {
     if(big_fish.id) {
       winner = names[big_fish.id];
     } else {
       winner = 'AI'
     }
 
-    game_over = true
+    end_game(winner)
   }
+}
+
+const end_game = (winner) => {
+  game_over = true
+
+  io.emit('game_over', {
+    game_over: game_over,
+    winner: winner
+  })
+  io.emit('fishes', [])
+
+  game_over_auto_reset = setTimeout(() => {
+    reset();
+  }, config.restart_game_timer)
 }
 
 //================================
@@ -371,14 +394,6 @@ const eat_fish = (small_fish_index, big_fish_index) => {
 //================================
 const update_clients = () => {
   io.emit('fishes', all_fishes().concat(Object.values(players)))
-  io.emit('game_over', {
-    game_over: game_over,
-    winner: winner
-  })
-
-  setTimeout(() => {
-    if(game_over) reset();
-  }, 50000)
 }
 
 //================================
@@ -386,7 +401,6 @@ const update_clients = () => {
 //================================
 const heartbeat = () => {
   if(game_over) {
-    io.emit('fishes', [])
     return;
   }
 
@@ -405,7 +419,8 @@ setInterval(heartbeat, 60)
 
 /* This debug function can display game information in the console */
 const debug = () => {
-  console.log(fishes, players, keyboards)
+  console.log("fishes:", fishes, "players:", players,
+   "keyboards:", keyboards, "game_over:", game_over)
 }
 
-if(process.env.DEBUG) setInterval(debug, 2000)/* Uncomment this line of code to see debug info */
+if(process.env.DEBUG) setInterval(debug, 5000)/* Uncomment this line of code to see debug info */

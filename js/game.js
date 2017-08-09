@@ -10,8 +10,8 @@ var socket = io();
 
 // === variables for drawing the game on the screen ===
 canvas = document.getElementById("pong_canvas") // This is the <canvas> in the HTML
-canvas.width = 700 // The game is this many pixels wide
-canvas.height = 600 // The game is this many pixels tall
+canvas.width = $(window).width() // The game is this many pixels wide
+canvas.height = $(window).height() // The game is this many pixels tall
 sheet = canvas.getContext("2d") // This is a leaf of the canvas for 2d drawings (usually called ctx in documentation online)
 
 fish_pic = new Image()
@@ -25,16 +25,13 @@ fish_pic_big.src = 'assets/bigkarp.png'
 
 
 // === variables for tracking objects and state of the game ===
-
-socket.on('new_user', function(user){
-  console.log(user)
-})
-
 fishes = []
 socket.on('fishes', function(server_fishes){
    fishes = server_fishes
 });
 
+config = {}
+socket.on('config', (server_config) => { config = server_config })
 
 game_over = false
 winner    = null
@@ -140,9 +137,11 @@ canvas.onmousedown = function() {
 //================================
 paint_fish = function(){
   fishes.forEach(function(fish){
-    fish.sx = fish.x/100 * 600
-    fish.sy = fish.y/100 * 600
-    fish.sr = fish.r/100 * 600
+    fish.sx = fish.x/config.x_scale * canvas.width
+    fish.sy = fish.y/config.y_scale * canvas.height
+
+    // Scale the radius to the average of screen x & y scales, so the fish overlap is consisten from all angles
+    fish.sr = fish.r/((config.x_scale + config.y_scale)/2) * canvas.width
 
     sheet.beginPath()
     sheet.fillStyle = '#7f8c8d'
@@ -185,7 +184,7 @@ paint = function() {
     sheet.fillStyle = '#ff1111'
     sheet.font = "18px sans";
     sheet.fillText("A huge fish, "+winner+", ate all life in the pond, permanently destroying the ecosystem.", 10, canvas.height / 2);
-    sheet.fillText("(Click to restart)", canvas.width / 2 - 70, canvas.height / 2 + 30);
+    sheet.fillText("(Click to restart)", 10, canvas.height / 2 + 30);
   }
 
 
@@ -214,4 +213,4 @@ debug = function() {
   console.log(fishes, keyboard, fishes.length)
 }
 
-window.setInterval(debug, 2000)/* Uncomment this line of code to see debug info */
+window.setInterval(debug, 5000)/* Uncomment this line of code to see debug info */

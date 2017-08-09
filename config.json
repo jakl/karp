@@ -1,3 +1,16 @@
 {
-  "start_with": 5
+  "start_with": 5,
+  "x_scale": 200,
+  "y_scale": 150,
+  "player_start_size": 3,
+  "player_speed": 1,
+  "ai_speed": 0.5,
+  "max_ai_fish": 20,
+  "max_ai_size": 5,
+  "negChance": 15,
+  "goldChance": 125,
+  "neg_reduction": 1.4,
+  "restart_game_timer": 15000,
+  "ai_reproduction_rate": 10000,
+  "special_fish_timeout": 5000
 }
