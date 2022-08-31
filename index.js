@@ -332,7 +332,7 @@ const bump_fish = () => {
         if((player_fish || positive_fish) && negative_fish) {
           const subject_fish = player_fish !== undefined ? player_fish : positive_fish
 
-          subject_fish.r = subject_fish.r / config.neg_reduction
+          subject_fish.r = subject_fish.r - negative_fish.r / config.neg_reduction
           fishes.splice(negative_fish.index, 1, random_ai_fish())
 
           return;
